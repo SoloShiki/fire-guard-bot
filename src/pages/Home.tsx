@@ -24,7 +24,7 @@ const mockCameraFeeds = [
   {
     id: "RBT-003",
     name: "Warehouse Safety Monitor",  
-    status: "standby" as const,
+    status: "active" as const,
     image: factoryFeed3,
     location: "Storage Area B"
   },
@@ -68,11 +68,7 @@ const Home = () => {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Active Robots:</span>
-              <span className="text-status-active font-semibold">2</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">On Standby:</span>
-              <span className="text-status-standby font-semibold">1</span>
+              <span className="text-status-active font-semibold">3</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Alerts:</span>
@@ -81,6 +77,10 @@ const Home = () => {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Offline:</span>
               <span className="text-status-offline font-semibold">0</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total Robots:</span>
+              <span className="text-foreground font-semibold">4</span>
             </div>
           </div>
         </div>

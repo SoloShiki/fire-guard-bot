@@ -18,14 +18,14 @@ const detectionPackages = [
   },
   {
     id: "PKG-002", 
-    name: "Oil Leak Monitor",
-    description: "Detects oil spills and chemical leaks in industrial environments",
-    version: "v1.8.2",
-    size: "28.7 MB",
-    installed: false,
-    category: "Chemical Safety",
-    icon: <Droplets className="text-warning" size={24} />,
-    features: ["Liquid spill detection", "Chemical identification", "Containment alerts", "Environmental monitoring"]
+    name: "Unsafe Condition Prevention",
+    description: "Detects unsafe behaviors and conditions in industrial environments",
+    version: "v2.3.1",
+    size: "35.4 MB",
+    installed: true,
+    category: "Behavioral Safety",
+    icon: <Eye className="text-warning" size={24} />,
+    features: ["Smoking detection", "PPE compliance", "Unsafe posture detection", "Restricted area monitoring"]
   },
   {
     id: "PKG-003",
@@ -62,14 +62,14 @@ const detectionPackages = [
   },
   {
     id: "PKG-006",
-    name: "Personal Safety Detector",
-    description: "Monitors worker safety compliance and PPE usage",
-    version: "v2.2.1", 
-    size: "37.3 MB",
+    name: "Oil Leak Monitor",
+    description: "Detects oil spills and chemical leaks in industrial environments",
+    version: "v1.8.2",
+    size: "28.7 MB",
     installed: false,
-    category: "Worker Safety",
-    icon: <Eye className="text-foreground" size={24} />,
-    features: ["PPE detection", "Fall detection", "Proximity alerts", "Compliance tracking"]
+    category: "Chemical Safety",
+    icon: <Droplets className="text-foreground" size={24} />,
+    features: ["Liquid spill detection", "Chemical identification", "Containment alerts", "Environmental monitoring"]
   }
 ];
 

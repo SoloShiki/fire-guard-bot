@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 interface CameraFeedProps {
   id: string;
   name: string;
-  status: "active" | "standby" | "alert" | "offline";
+  status: "active" | "alert" | "offline";
   image: string;
   location: string;
 }
@@ -13,8 +13,6 @@ export const CameraFeed = ({ id, name, status, image, location }: CameraFeedProp
     switch (status) {
       case "active":
         return "bg-status-active";
-      case "standby":
-        return "bg-status-standby";
       case "alert":
         return "bg-status-alert";
       case "offline":
@@ -28,8 +26,6 @@ export const CameraFeed = ({ id, name, status, image, location }: CameraFeedProp
     switch (status) {
       case "active":
         return "ACTIVE";
-      case "standby":
-        return "STANDBY";
       case "alert":
         return "ALERT";
       case "offline":

@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Phone, Mail, Bell, Volume2, Shield, User, Smartphone, Wifi } from "lucide-react";
+import { RobotManagement } from "@/components/RobotManagement";
+import { CameraStreaming } from "@/components/CameraStreaming";
 
 const Settings = () => {
   return (
@@ -106,35 +109,15 @@ const Settings = () => {
             </CardContent>
           </Card>
 
+          <Separator className="my-6" />
+
           {/* Robot Management */}
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-foreground">
-                <Smartphone className="text-status-active" size={20} />
-                <span>Robot Management</span>
-              </CardTitle>
-              <CardDescription>Manage your Firevolx robots</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-foreground">Auto-Discovery</Label>
-                  <p className="text-sm text-muted-foreground">Automatically detect new robots</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
+          <RobotManagement />
 
-              <Button variant="outline" className="w-full">
-                <Wifi className="mr-2" size={16} />
-                Scan for New Robots
-              </Button>
+          <Separator className="my-6" />
 
-              <Button variant="outline" className="w-full">
-                <Shield className="mr-2" size={16} />
-                View Robot Status
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Camera Streaming */}
+          <CameraStreaming />
 
           {/* Account Settings */}
           <Card className="border-border">
