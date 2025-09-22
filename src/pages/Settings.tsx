@@ -10,11 +10,34 @@ import { Phone, Mail, Bell, Volume2, Shield, User, Smartphone, Wifi } from "luci
 import { RobotManagement } from "@/components/RobotManagement";
 import { CameraStreaming } from "@/components/CameraStreaming";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 const Settings = () => {
   const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    primaryContact: "",
+    secondaryContact: "",
+    emailContact: "",
+    companyName: "",
+    facilityId: "",
+    pushNotifications: true,
+    emailAlerts: true,
+    smsAlerts: false,
+    alertSound: "siren"
+  });
+
+  // Load saved settings on component mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('firevolxSettings');
+    if (savedSettings) {
+      setFormData({ ...formData, ...JSON.parse(savedSettings) });
+    }
+  }, []);
 
   const handleSaveSettings = () => {
+    // Save to localStorage
+    localStorage.setItem('firevolxSettings', JSON.stringify(formData));
+    
     toast({
       title: "Settings Saved",
       description: "Your settings have been successfully updated",
@@ -44,6 +67,8 @@ const Settings = () => {
                 <Input 
                   id="primary-contact" 
                   placeholder="+1 (555) 123-4567" 
+                  value={formData.primaryContact}
+                  onChange={(e) => setFormData({...formData, primaryContact: e.target.value})}
                   className="mt-1"
                 />
               </div>
@@ -52,6 +77,8 @@ const Settings = () => {
                 <Input 
                   id="secondary-contact" 
                   placeholder="+1 (555) 987-6543" 
+                  value={formData.secondaryContact}
+                  onChange={(e) => setFormData({...formData, secondaryContact: e.target.value})}
                   className="mt-1"
                 />
               </div>
@@ -61,6 +88,8 @@ const Settings = () => {
                   id="email-contact" 
                   type="email"
                   placeholder="emergency@company.com" 
+                  value={formData.emailContact}
+                  onChange={(e) => setFormData({...formData, emailContact: e.target.value})}
                   className="mt-1"
                 />
               </div>
@@ -82,7 +111,10 @@ const Settings = () => {
                   <Label className="text-foreground">Push Notifications</Label>
                   <p className="text-sm text-muted-foreground">Receive alerts on your device</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={formData.pushNotifications} 
+                  onCheckedChange={(checked) => setFormData({...formData, pushNotifications: checked})}
+                />
               </div>
               
               <div className="flex items-center justify-between">
@@ -90,7 +122,10 @@ const Settings = () => {
                   <Label className="text-foreground">Email Alerts</Label>
                   <p className="text-sm text-muted-foreground">Send alerts via email</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={formData.emailAlerts} 
+                  onCheckedChange={(checked) => setFormData({...formData, emailAlerts: checked})}
+                />
               </div>
 
               <div className="flex items-center justify-between">
@@ -98,12 +133,18 @@ const Settings = () => {
                   <Label className="text-foreground">SMS Alerts</Label>
                   <p className="text-sm text-muted-foreground">Send critical alerts via SMS</p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={formData.smsAlerts} 
+                  onCheckedChange={(checked) => setFormData({...formData, smsAlerts: checked})}
+                />
               </div>
 
               <div>
                 <Label className="text-foreground">Alert Sound</Label>
-                <Select defaultValue="siren">
+                <Select 
+                  value={formData.alertSound} 
+                  onValueChange={(value) => setFormData({...formData, alertSound: value})}
+                >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
@@ -143,6 +184,8 @@ const Settings = () => {
                 <Input 
                   id="company-name" 
                   placeholder="Acme Industries" 
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({...formData, companyName: e.target.value})}
                   className="mt-1"
                 />
               </div>
@@ -152,6 +195,8 @@ const Settings = () => {
                 <Input 
                   id="facility-id" 
                   placeholder="FAC-001" 
+                  value={formData.facilityId}
+                  onChange={(e) => setFormData({...formData, facilityId: e.target.value})}
                   className="mt-1"
                 />
               </div>

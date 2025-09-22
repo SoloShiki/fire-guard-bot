@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Wifi, Plus, Settings, Trash2, Signal } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { RobotConfigDialog } from "./RobotConfigDialog";
 
 interface Robot {
   id: string;
@@ -47,6 +48,8 @@ const mockRobots: Robot[] = [
 export const RobotManagement = () => {
   const [robots, setRobots] = useState<Robot[]>(mockRobots);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [selectedRobot, setSelectedRobot] = useState<Robot | null>(null);
   const [robotId, setRobotId] = useState("");
   const [robotName, setRobotName] = useState("");
   const [location, setLocation] = useState("");
@@ -108,10 +111,15 @@ export const RobotManagement = () => {
     });
   };
 
-  const handleConfigureRobot = (robotName: string) => {
+  const handleConfigureRobot = (robot: Robot) => {
+    setSelectedRobot(robot);
+    setIsConfigDialogOpen(true);
+  };
+
+  const handleSaveRobotConfig = (robotId: string, config: any) => {
     toast({
-      title: "Configuration",
-      description: `Opening configuration for ${robotName}`,
+      title: "Configuration Saved",
+      description: `Settings for robot ${robotId} have been updated`,
     });
   };
 
@@ -233,7 +241,7 @@ export const RobotManagement = () => {
                   variant="outline" 
                   size="sm" 
                   className="flex-1"
-                  onClick={() => handleConfigureRobot(robot.name)}
+                  onClick={() => handleConfigureRobot(robot)}
                 >
                   <Settings size={14} className="mr-1" />
                   Configure
@@ -252,6 +260,15 @@ export const RobotManagement = () => {
           </Card>
         ))}
       </div>
+
+      {selectedRobot && (
+        <RobotConfigDialog
+          robot={selectedRobot}
+          isOpen={isConfigDialogOpen}
+          onOpenChange={setIsConfigDialogOpen}
+          onSave={handleSaveRobotConfig}
+        />
+      )}
     </div>
   );
 };

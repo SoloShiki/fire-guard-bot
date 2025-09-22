@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Video, ExternalLink, Play, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { CameraConfigDialog } from "./CameraConfigDialog";
+import { CameraStreamViewer } from "./CameraStreamViewer";
 
 interface CameraStream {
   id: string;
@@ -43,6 +45,9 @@ const mockStreams: CameraStream[] = [
 export const CameraStreaming = () => {
   const [streams, setStreams] = useState<CameraStream[]>(mockStreams);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [selectedStream, setSelectedStream] = useState<CameraStream | null>(null);
   const [streamName, setStreamName] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [robotId, setRobotId] = useState("");
@@ -98,10 +103,20 @@ export const CameraStreaming = () => {
     });
   };
 
-  const handleConfigureStream = (streamName: string) => {
+  const handleConfigureStream = (stream: CameraStream) => {
+    setSelectedStream(stream);
+    setIsConfigDialogOpen(true);
+  };
+
+  const handleViewStream = (stream: CameraStream) => {
+    setSelectedStream(stream);
+    setIsViewerOpen(true);
+  };
+
+  const handleSaveStreamConfig = (streamId: string, config: any) => {
     toast({
-      title: "Configuration",
-      description: `Opening configuration for ${streamName}`,
+      title: "Camera Configuration Saved",
+      description: `Settings for stream ${streamId} have been updated`,
     });
   };
 
@@ -199,7 +214,7 @@ export const CameraStreaming = () => {
                   variant="outline" 
                   size="sm" 
                   className="flex-1 text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-                  onClick={() => openStream(stream.url)}
+                  onClick={() => handleViewStream(stream)}
                   disabled={stream.status === "offline"}
                 >
                   <Play size={14} className="mr-1" />
@@ -217,7 +232,7 @@ export const CameraStreaming = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleConfigureStream(stream.name)}
+                  onClick={() => handleConfigureStream(stream)}
                 >
                   <Settings size={14} />
                 </Button>
@@ -234,6 +249,22 @@ export const CameraStreaming = () => {
           </Card>
         ))}
       </div>
+
+      {selectedStream && (
+        <>
+          <CameraConfigDialog
+            stream={selectedStream}
+            isOpen={isConfigDialogOpen}
+            onOpenChange={setIsConfigDialogOpen}
+            onSave={handleSaveStreamConfig}
+          />
+          <CameraStreamViewer
+            stream={selectedStream}
+            isOpen={isViewerOpen}
+            onOpenChange={setIsViewerOpen}
+          />
+        </>
+      )}
     </div>
   );
 };
