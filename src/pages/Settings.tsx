@@ -9,8 +9,17 @@ import { Separator } from "@/components/ui/separator";
 import { Phone, Mail, Bell, Volume2, Shield, User, Smartphone, Wifi } from "lucide-react";
 import { RobotManagement } from "@/components/RobotManagement";
 import { CameraStreaming } from "@/components/CameraStreaming";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
+  const { toast } = useToast();
+
+  const handleSaveSettings = () => {
+    toast({
+      title: "Settings Saved",
+      description: "Your settings have been successfully updated",
+    });
+  };
   return (
     <Layout>
       <div className="p-6 pb-24">
@@ -147,7 +156,10 @@ const Settings = () => {
                 />
               </div>
 
-              <Button className="w-full bg-primary hover:bg-primary/90">
+              <Button 
+                className="w-full bg-primary hover:bg-primary/90"
+                onClick={handleSaveSettings}
+              >
                 Save Settings
               </Button>
             </CardContent>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Wifi, Plus, Settings, Trash2, Signal } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Robot {
   id: string;
@@ -44,8 +45,14 @@ const mockRobots: Robot[] = [
 ];
 
 export const RobotManagement = () => {
-  const [robots] = useState<Robot[]>(mockRobots);
+  const [robots, setRobots] = useState<Robot[]>(mockRobots);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [robotId, setRobotId] = useState("");
+  const [robotName, setRobotName] = useState("");
+  const [location, setLocation] = useState("");
+  const [wifiSSID, setWifiSSID] = useState("");
+  const [wifiPassword, setWifiPassword] = useState("");
+  const { toast } = useToast();
 
   const getSignalIcon = (strength: number) => {
     if (strength > 75) return <Signal className="text-success" size={16} />;
@@ -56,6 +63,56 @@ export const RobotManagement = () => {
 
   const getStatusColor = (status: string) => {
     return status === "online" ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground";
+  };
+
+  const handleConnectRobot = () => {
+    if (!robotId || !robotName || !location || !wifiSSID || !wifiPassword) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newRobot: Robot = {
+      id: robotId,
+      name: robotName,
+      status: "online",
+      signalStrength: Math.floor(Math.random() * 30) + 70, // Random signal between 70-100
+      location: location,
+      ipAddress: `192.168.1.${100 + robots.length + 1}`,
+    };
+
+    setRobots([...robots, newRobot]);
+    
+    // Reset form
+    setRobotId("");
+    setRobotName("");
+    setLocation("");
+    setWifiSSID("");
+    setWifiPassword("");
+    setIsAddDialogOpen(false);
+    
+    toast({
+      title: "Robot Connected",
+      description: `${robotName} has been successfully connected to the cloud`,
+    });
+  };
+
+  const handleRemoveRobot = (robotId: string, robotName: string) => {
+    setRobots(robots.filter(robot => robot.id !== robotId));
+    toast({
+      title: "Robot Removed",
+      description: `${robotName} has been disconnected`,
+    });
+  };
+
+  const handleConfigureRobot = (robotName: string) => {
+    toast({
+      title: "Configuration",
+      description: `Opening configuration for ${robotName}`,
+    });
   };
 
   return (
@@ -82,25 +139,54 @@ export const RobotManagement = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="robot-id">Robot ID</Label>
-                <Input id="robot-id" placeholder="RBT-004" />
+                <Input 
+                  id="robot-id" 
+                  placeholder="RBT-004"
+                  value={robotId}
+                  onChange={(e) => setRobotId(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="robot-name">Robot Name</Label>
-                <Input id="robot-name" placeholder="Safety Monitor Delta" />
+                <Input 
+                  id="robot-name" 
+                  placeholder="Safety Monitor Delta"
+                  value={robotName}
+                  onChange={(e) => setRobotName(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="location">Location</Label>
-                <Input id="location" placeholder="Warehouse Section D" />
+                <Input 
+                  id="location" 
+                  placeholder="Warehouse Section D"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="wifi-ssid">WiFi Network</Label>
-                <Input id="wifi-ssid" placeholder="Factory-WiFi" />
+                <Input 
+                  id="wifi-ssid" 
+                  placeholder="Factory-WiFi"
+                  value={wifiSSID}
+                  onChange={(e) => setWifiSSID(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="wifi-password">WiFi Password</Label>
-                <Input id="wifi-password" type="password" placeholder="••••••••" />
+                <Input 
+                  id="wifi-password" 
+                  type="password" 
+                  placeholder="••••••••"
+                  value={wifiPassword}
+                  onChange={(e) => setWifiPassword(e.target.value)}
+                />
               </div>
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button 
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleConnectRobot}
+              >
                 <Wifi size={16} className="mr-2" />
                 Connect Robot
               </Button>
@@ -143,11 +229,21 @@ export const RobotManagement = () => {
               </div>
               
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleConfigureRobot(robot.name)}
+                >
                   <Settings size={14} className="mr-1" />
                   Configure
                 </Button>
-                <Button variant="outline" size="sm" className="text-emergency border-emergency hover:bg-emergency hover:text-emergency-foreground">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-emergency border-emergency hover:bg-emergency hover:text-emergency-foreground"
+                  onClick={() => handleRemoveRobot(robot.id, robot.name)}
+                >
                   <Trash2 size={14} className="mr-1" />
                   Remove
                 </Button>

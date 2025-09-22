@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Video, ExternalLink, Play, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface CameraStream {
   id: string;
@@ -40,8 +41,12 @@ const mockStreams: CameraStream[] = [
 ];
 
 export const CameraStreaming = () => {
-  const [streams] = useState<CameraStream[]>(mockStreams);
+  const [streams, setStreams] = useState<CameraStream[]>(mockStreams);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [streamName, setStreamName] = useState("");
+  const [streamUrl, setStreamUrl] = useState("");
+  const [robotId, setRobotId] = useState("");
+  const { toast } = useToast();
 
   const getStatusColor = (status: string) => {
     return status === "active" ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground";
@@ -49,6 +54,55 @@ export const CameraStreaming = () => {
 
   const openStream = (url: string) => {
     window.open(url, '_blank', 'width=800,height=600');
+  };
+
+  const openStreamInNewTab = (url: string) => {
+    window.open(url, '_blank');
+  };
+
+  const handleAddStream = () => {
+    if (!streamName || !streamUrl || !robotId) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newStream: CameraStream = {
+      id: `CAM-${String(streams.length + 1).padStart(3, '0')}`,
+      name: streamName,
+      url: streamUrl,
+      status: "active",
+      robotId: robotId,
+    };
+
+    setStreams([...streams, newStream]);
+    setStreamName("");
+    setStreamUrl("");
+    setRobotId("");
+    setIsAddDialogOpen(false);
+    
+    toast({
+      title: "Stream Added",
+      description: `${streamName} has been successfully added`,
+    });
+  };
+
+  const handleDeleteStream = (streamId: string, streamName: string) => {
+    setStreams(streams.filter(stream => stream.id !== streamId));
+    toast({
+      title: "Stream Removed",
+      description: `${streamName} has been removed`,
+    });
+  };
+
+  const handleConfigureStream = (streamName: string) => {
+    toast({
+      title: "Configuration",
+      description: `Opening configuration for ${streamName}`,
+    });
   };
 
   return (
@@ -75,17 +129,35 @@ export const CameraStreaming = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="stream-name">Stream Name</Label>
-                <Input id="stream-name" placeholder="Main Entrance Camera" />
+                <Input 
+                  id="stream-name" 
+                  placeholder="Main Entrance Camera"
+                  value={streamName}
+                  onChange={(e) => setStreamName(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="stream-url">Stream URL</Label>
-                <Input id="stream-url" placeholder="https://your-robot.local/stream" />
+                <Input 
+                  id="stream-url" 
+                  placeholder="https://your-robot.local/stream"
+                  value={streamUrl}
+                  onChange={(e) => setStreamUrl(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="robot-select">Associated Robot</Label>
-                <Input id="robot-select" placeholder="RBT-001" />
+                <Input 
+                  id="robot-select" 
+                  placeholder="RBT-001"
+                  value={robotId}
+                  onChange={(e) => setRobotId(e.target.value)}
+                />
               </div>
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button 
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleAddStream}
+              >
                 <Video size={16} className="mr-2" />
                 Add Stream
               </Button>
@@ -133,14 +205,28 @@ export const CameraStreaming = () => {
                   <Play size={14} className="mr-1" />
                   View Stream
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openStreamInNewTab(stream.url)}
+                  disabled={stream.status === "offline"}
+                >
                   <ExternalLink size={14} className="mr-1" />
                   Open
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleConfigureStream(stream.name)}
+                >
                   <Settings size={14} />
                 </Button>
-                <Button variant="outline" size="sm" className="text-emergency border-emergency hover:bg-emergency hover:text-emergency-foreground">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-emergency border-emergency hover:bg-emergency hover:text-emergency-foreground"
+                  onClick={() => handleDeleteStream(stream.id, stream.name)}
+                >
                   <Trash2 size={14} />
                 </Button>
               </div>
