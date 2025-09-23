@@ -6,14 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Phone, Mail, Bell, Volume2, Shield, User, Smartphone, Wifi } from "lucide-react";
+import { Phone, Mail, Bell, Volume2, Shield, User, Smartphone, Wifi, Terminal } from "lucide-react";
 import { RobotManagement } from "@/components/RobotManagement";
 import { CameraStreaming } from "@/components/CameraStreaming";
+import { TerminalComponent } from "@/components/TerminalComponent";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 
 const Settings = () => {
   const { toast } = useToast();
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [formData, setFormData] = useState({
     primaryContact: "",
     secondaryContact: "",
@@ -169,6 +171,25 @@ const Settings = () => {
           {/* Camera Streaming */}
           <CameraStreaming />
 
+          <Separator className="my-6" />
+
+          {/* Terminal Access */}
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-foreground">
+                <Terminal className="text-primary" size={20} />
+                <span>Terminal Access</span>
+              </CardTitle>
+              <CardDescription>Connect to robot terminals for direct control</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => setIsTerminalOpen(true)} className="w-full bg-primary hover:bg-primary/90">
+                <Terminal className="mr-2 h-4 w-4" />
+                Open Robot Terminal
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Account Settings */}
           <Card className="border-border">
             <CardHeader>
@@ -211,6 +232,8 @@ const Settings = () => {
           </Card>
         </div>
       </div>
+      
+      <TerminalComponent isOpen={isTerminalOpen} onOpenChange={setIsTerminalOpen} />
     </Layout>
   );
 };

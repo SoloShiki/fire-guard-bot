@@ -26,50 +26,6 @@ const detectionPackages = [
     category: "Behavioral Safety",
     icon: <Eye className="text-warning" size={24} />,
     features: ["Smoking detection", "PPE compliance", "Unsafe posture detection", "Restricted area monitoring"]
-  },
-  {
-    id: "PKG-003",
-    name: "Temperature Guardian",
-    description: "Monitors equipment overheating and temperature anomalies",
-    version: "v3.0.1",
-    size: "32.1 MB", 
-    installed: true,
-    category: "Equipment Safety",
-    icon: <Thermometer className="text-status-active" size={24} />,
-    features: ["Overheating detection", "Temperature trends", "Equipment monitoring", "Predictive alerts"]
-  },
-  {
-    id: "PKG-004",
-    name: "Electrical Safety Scanner",
-    description: "Detects electrical hazards and power anomalies",
-    version: "v2.5.0",
-    size: "19.8 MB",
-    installed: false,
-    category: "Electrical Safety", 
-    icon: <Zap className="text-status-standby" size={24} />,
-    features: ["Arc flash detection", "Voltage monitoring", "Insulation analysis", "Emergency shutoff"]
-  },
-  {
-    id: "PKG-005",
-    name: "Machinery Health Monitor",
-    description: "Monitors mechanical equipment for maintenance needs",
-    version: "v1.9.4",
-    size: "41.5 MB",
-    installed: true,
-    category: "Predictive Maintenance",
-    icon: <Wrench className="text-muted-foreground" size={24} />,
-    features: ["Vibration analysis", "Wear detection", "Maintenance alerts", "Performance tracking"]
-  },
-  {
-    id: "PKG-006",
-    name: "Oil Leak Monitor",
-    description: "Detects oil spills and chemical leaks in industrial environments",
-    version: "v1.8.2",
-    size: "28.7 MB",
-    installed: false,
-    category: "Chemical Safety",
-    icon: <Droplets className="text-foreground" size={24} />,
-    features: ["Liquid spill detection", "Chemical identification", "Containment alerts", "Environmental monitoring"]
   }
 ];
 
