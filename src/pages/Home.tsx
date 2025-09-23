@@ -1,39 +1,28 @@
 import { AlertButton } from "@/components/AlertButton";
 import { CameraFeed } from "@/components/CameraFeed";
 import { Layout } from "@/components/Layout";
-import factoryFeed1 from "@/assets/factory-feed-1.jpg";
-import factoryFeed2 from "@/assets/factory-feed-2.jpg";
-import factoryFeed3 from "@/assets/factory-feed-3.jpg";
-import factoryFeed4 from "@/assets/factory-feed-4.jpg";
 
 const mockCameraFeeds = [
   {
     id: "RBT-001",
-    name: "Conveyor Belt Monitor",
+    name: "Main Entrance Camera",
     status: "active" as const,
-    image: factoryFeed1,
+    streamUrl: "https://demo.ip-cam.com/demo1",
     location: "Production Line A"
   },
   {
     id: "RBT-002", 
-    name: "Assembly Line Scanner",
+    name: "Factory Floor Camera",
     status: "active" as const,
-    image: factoryFeed2,
+    streamUrl: "https://demo.ip-cam.com/demo2",
     location: "Manufacturing Floor"
   },
   {
     id: "RBT-003",
-    name: "Warehouse Safety Monitor",  
+    name: "Emergency Exit Camera",  
     status: "active" as const,
-    image: factoryFeed3,
+    streamUrl: "https://demo.ip-cam.com/demo3",
     location: "Storage Area B"
-  },
-  {
-    id: "RBT-004",
-    name: "Chemical Processing Monitor",
-    status: "alert" as const,
-    image: factoryFeed4,
-    location: "Processing Plant C"
   }
 ];
 
@@ -72,7 +61,7 @@ const Home = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Alerts:</span>
-              <span className="text-status-alert font-semibold">1</span>
+              <span className="text-status-alert font-semibold">0</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Offline:</span>
@@ -80,7 +69,7 @@ const Home = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Total Robots:</span>
-              <span className="text-foreground font-semibold">4</span>
+              <span className="text-foreground font-semibold">3</span>
             </div>
           </div>
         </div>

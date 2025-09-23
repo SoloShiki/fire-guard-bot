@@ -9,39 +9,48 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { RobotConfigDialog } from "./RobotConfigDialog";
 
+
 interface Robot {
   id: string;
   name: string;
   status: "online" | "offline";
-  signalStrength: number;
+  batteryLevel: number;
+  lastContact: string;
   location: string;
   ipAddress: string;
+  signalStrength: number;
 }
 
 const mockRobots: Robot[] = [
   {
     id: "RBT-001",
-    name: "Safety Monitor Alpha",
+    name: "Fire Detection Unit 1",
     status: "online",
-    signalStrength: 85,
+    batteryLevel: 85,
+    lastContact: "2 minutes ago",
     location: "Production Floor A",
-    ipAddress: "192.168.1.101"
+    ipAddress: "192.168.1.101",
+    signalStrength: 85
   },
   {
     id: "RBT-002", 
-    name: "Fire Guard Beta",
+    name: "Safety Monitor Unit 2",
     status: "online",
-    signalStrength: 92,
+    batteryLevel: 92,
+    lastContact: "1 minute ago",
     location: "Processing Plant C",
-    ipAddress: "192.168.1.102"
+    ipAddress: "192.168.1.102",
+    signalStrength: 92
   },
   {
     id: "RBT-003",
-    name: "Equipment Monitor Gamma",
-    status: "offline",
-    signalStrength: 0,
+    name: "Patrol Robot Unit 3",
+    status: "online",
+    batteryLevel: 78,
+    lastContact: "3 minutes ago",
     location: "Storage Area B",
-    ipAddress: "192.168.1.103"
+    ipAddress: "192.168.1.103",
+    signalStrength: 78
   }
 ];
 
@@ -82,9 +91,11 @@ export const RobotManagement = () => {
       id: robotId,
       name: robotName,
       status: "online",
-      signalStrength: Math.floor(Math.random() * 30) + 70, // Random signal between 70-100
+      batteryLevel: Math.floor(Math.random() * 30) + 70,
+      lastContact: "Just connected",
       location: location,
       ipAddress: `192.168.1.${100 + robots.length + 1}`,
+      signalStrength: Math.floor(Math.random() * 30) + 70,
     };
 
     setRobots([...robots, newRobot]);
@@ -117,6 +128,18 @@ export const RobotManagement = () => {
   };
 
   const handleSaveRobotConfig = (robotId: string, config: any) => {
+    // Save to localStorage
+    const savedConfigs = JSON.parse(localStorage.getItem('robotConfigs') || '{}');
+    savedConfigs[robotId] = config;
+    localStorage.setItem('robotConfigs', JSON.stringify(savedConfigs));
+    
+    // Update robot in the list if needed
+    setRobots(robots.map(robot => 
+      robot.id === robotId 
+        ? { ...robot, ...config }
+        : robot
+    ));
+    
     toast({
       title: "Configuration Saved",
       description: `Settings for robot ${robotId} have been updated`,
@@ -226,9 +249,17 @@ export const RobotManagement = () => {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                 <div className="flex items-center space-x-2">
+                  <span className="text-muted-foreground">Battery:</span>
+                  <span className="text-foreground font-medium">{robot.batteryLevel}%</span>
+                </div>
+                <div className="flex items-center space-x-2">
                   <span className="text-muted-foreground">Signal:</span>
                   {getSignalIcon(robot.signalStrength)}
                   <span className="text-foreground font-medium">{robot.signalStrength}%</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Last Contact:</span>
+                  <span className="ml-2 text-foreground font-medium">{robot.lastContact}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">IP:</span>

@@ -1,14 +1,16 @@
 import { Card } from "@/components/ui/card";
+import { useState } from "react";
 
 interface CameraFeedProps {
   id: string;
   name: string;
   status: "active" | "alert" | "offline";
-  image: string;
+  streamUrl: string;
   location: string;
 }
 
-export const CameraFeed = ({ id, name, status, image, location }: CameraFeedProps) => {
+export const CameraFeed = ({ id, name, status, streamUrl, location }: CameraFeedProps) => {
+  const [streamError, setStreamError] = useState(false);
   const getStatusColor = () => {
     switch (status) {
       case "active":
@@ -38,11 +40,24 @@ export const CameraFeed = ({ id, name, status, image, location }: CameraFeedProp
   return (
     <Card className="overflow-hidden border-border bg-card hover:bg-card/80 transition-colors">
       <div className="relative">
-        <img
-          src={image}
-          alt={`${name} camera feed`}
-          className="w-full h-32 object-cover"
-        />
+        {!streamError && streamUrl ? (
+          <iframe
+            src={streamUrl}
+            className="w-full h-32 border-0"
+            title={`${name} live stream`}
+            allow="camera; microphone"
+            onError={() => setStreamError(true)}
+          />
+        ) : (
+          <div className="w-full h-32 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
+              </div>
+              <p className="text-xs text-muted-foreground">Live Feed</p>
+            </div>
+          </div>
+        )}
         <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold ${getStatusColor()} text-white`}>
           {getStatusText()}
         </div>

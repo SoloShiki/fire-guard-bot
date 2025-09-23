@@ -21,23 +21,23 @@ interface CameraStream {
 const mockStreams: CameraStream[] = [
   {
     id: "CAM-001",
-    name: "Production Floor Main",
-    url: "https://stream.factory.local/cam1",
+    name: "Main Entrance Camera",
+    url: "https://demo.ip-cam.com/demo1",
     status: "active",
     robotId: "RBT-001"
   },
   {
     id: "CAM-002",
-    name: "Processing Plant View",
-    url: "https://stream.factory.local/cam2", 
+    name: "Factory Floor Camera",
+    url: "https://demo.ip-cam.com/demo2", 
     status: "active",
     robotId: "RBT-002"
   },
   {
     id: "CAM-003",
-    name: "Storage Area Monitor",
-    url: "https://stream.factory.local/cam3",
-    status: "offline",
+    name: "Emergency Exit Camera",
+    url: "https://demo.ip-cam.com/demo3",
+    status: "active",
     robotId: "RBT-003"
   }
 ];
@@ -114,6 +114,18 @@ export const CameraStreaming = () => {
   };
 
   const handleSaveStreamConfig = (streamId: string, config: any) => {
+    // Save to localStorage
+    const savedConfigs = JSON.parse(localStorage.getItem('cameraConfigs') || '{}');
+    savedConfigs[streamId] = config;
+    localStorage.setItem('cameraConfigs', JSON.stringify(savedConfigs));
+    
+    // Update stream in the list if needed
+    setStreams(streams.map(stream => 
+      stream.id === streamId 
+        ? { ...stream, ...config }
+        : stream
+    ));
+    
     toast({
       title: "Camera Configuration Saved",
       description: `Settings for stream ${streamId} have been updated`,
