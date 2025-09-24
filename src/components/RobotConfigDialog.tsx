@@ -1,85 +1,104 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-
-interface Robot {
-  id: string;
-  name: string;
-  status: "online" | "offline";
-  signalStrength: number;
-  location: string;
-  ipAddress: string;
-}
 
 interface RobotConfigDialogProps {
-  robot: Robot;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (robotId: string, config: any) => void;
+  onSubmit: (robotData: {
+    name: string;
+    location: string;
+    wifiNetwork: string;
+    wifiPassword: string;
+    status: 'online' | 'offline' | 'alert';
+    ipAddress?: string;
+  }) => void;
+  initialData?: {
+    name: string;
+    location: string;
+    wifiNetwork: string;
+    wifiPassword: string;
+  } | null;
 }
 
-export const RobotConfigDialog = ({ robot, isOpen, onOpenChange, onSave }: RobotConfigDialogProps) => {
-  const [config, setConfig] = useState({
-    id: robot.id,
-    name: robot.name,
-    location: robot.location,
-    wifiNetwork: "",
-    wifiPassword: ""
-  });
-  const { toast } = useToast();
+export const RobotConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData }: RobotConfigDialogProps) => {
+  const [robotId, setRobotId] = useState("");
+  const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
+  const [wifiNetwork, setWifiNetwork] = useState("");
+  const [wifiPassword, setWifiPassword] = useState("");
 
-  const handleSave = () => {
-    // Save to localStorage
-    const savedRobots = JSON.parse(localStorage.getItem('robots') || '[]');
-    const updatedRobots = savedRobots.map((r: any) => 
-      r.id === robot.id ? { ...r, ...config } : r
-    );
-    localStorage.setItem('robots', JSON.stringify(updatedRobots));
-    
-    onSave(robot.id, config);
-    onOpenChange(false);
-    
-    toast({
-      title: "Configuration Saved",
-      description: `Settings for ${config.name} have been updated`,
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      setLocation(initialData.location);
+      setWifiNetwork(initialData.wifiNetwork);
+      setWifiPassword(initialData.wifiPassword);
+    } else {
+      setRobotId("");
+      setName("");
+      setLocation("");
+      setWifiNetwork("");
+      setWifiPassword("");
+    }
+  }, [initialData, isOpen]);
+
+  const handleSubmit = () => {
+    if (!name || !location || !wifiNetwork) return;
+
+    onSubmit({
+      name,
+      location,
+      wifiNetwork,
+      wifiPassword,
+      status: 'online',
+      ipAddress: initialData ? undefined : `192.168.1.${Math.floor(Math.random() * 100) + 100}`
     });
+
+    // Reset form
+    setRobotId("");
+    setName("");
+    setLocation("");
+    setWifiNetwork("");
+    setWifiPassword("");
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Configure {robot.name}</DialogTitle>
+          <DialogTitle>
+            {initialData ? "Edit Robot" : "Add Robot"}
+          </DialogTitle>
           <DialogDescription>
-            Adjust detection settings and behavior for this robot
+            Configure robot settings. Only the essential fields are required.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="robotId">Robot ID</Label>
-            <Input
-              id="robotId"
-              value={config.id}
-              onChange={(e) => setConfig({...config, id: e.target.value})}
-              className="mt-1"
-              placeholder="Enter robot ID"
-            />
-          </div>
+          {!initialData && (
+            <div>
+              <Label htmlFor="robot-id">Robot ID</Label>
+              <Input
+                id="robot-id"
+                value={robotId}
+                onChange={(e) => setRobotId(e.target.value)}
+                placeholder="RBT-004"
+                className="mt-1"
+              />
+            </div>
+          )}
 
           <div>
-            <Label htmlFor="robotName">Robot Name</Label>
+            <Label htmlFor="robot-name">Robot Name</Label>
             <Input
-              id="robotName"
-              value={config.name}
-              onChange={(e) => setConfig({...config, name: e.target.value})}
+              id="robot-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Patrol Robot Delta"
               className="mt-1"
-              placeholder="Enter robot name"
             />
           </div>
 
@@ -87,40 +106,49 @@ export const RobotConfigDialog = ({ robot, isOpen, onOpenChange, onSave }: Robot
             <Label htmlFor="location">Location</Label>
             <Input
               id="location"
-              value={config.location}
-              onChange={(e) => setConfig({...config, location: e.target.value})}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Warehouse Section D"
               className="mt-1"
-              placeholder="Enter location"
             />
           </div>
 
           <div>
-            <Label htmlFor="wifiNetwork">WiFi Network</Label>
+            <Label htmlFor="wifi-network">WiFi Network</Label>
             <Input
-              id="wifiNetwork"
-              value={config.wifiNetwork}
-              onChange={(e) => setConfig({...config, wifiNetwork: e.target.value})}
+              id="wifi-network"
+              value={wifiNetwork}
+              onChange={(e) => setWifiNetwork(e.target.value)}
+              placeholder="Factory-WiFi"
               className="mt-1"
-              placeholder="Enter WiFi network name"
             />
           </div>
 
           <div>
-            <Label htmlFor="wifiPassword">WiFi Password</Label>
+            <Label htmlFor="wifi-password">WiFi Password</Label>
             <Input
-              id="wifiPassword"
+              id="wifi-password"
               type="password"
-              value={config.wifiPassword}
-              onChange={(e) => setConfig({...config, wifiPassword: e.target.value})}
+              value={wifiPassword}
+              onChange={(e) => setWifiPassword(e.target.value)}
+              placeholder="••••••••"
               className="mt-1"
-              placeholder="Enter WiFi password"
             />
           </div>
-
-          <Button onClick={handleSave} className="w-full bg-primary hover:bg-primary/90">
-            Save Configuration
-          </Button>
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={!name || !location || !wifiNetwork}
+            className="bg-primary hover:bg-primary/90"
+          >
+            {initialData ? "Update Robot" : "Add Robot"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

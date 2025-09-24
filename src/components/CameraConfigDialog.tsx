@@ -1,103 +1,131 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-
-interface CameraStream {
-  id: string;
-  name: string;
-  url: string;
-  status: "active" | "offline";
-  robotId: string;
-}
+import { useSettings } from "@/hooks/useSettings";
 
 interface CameraConfigDialogProps {
-  stream: CameraStream;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (streamId: string, config: any) => void;
+  onSubmit: (streamData: {
+    name: string;
+    streamUrl: string;
+    associatedRobot: string;
+    status: 'active' | 'alert' | 'offline';
+    location: string;
+  }) => void;
+  initialData?: {
+    name: string;
+    streamUrl: string;
+    associatedRobot: string;
+    location: string;
+  } | null;
 }
 
-export const CameraConfigDialog = ({ stream, isOpen, onOpenChange, onSave }: CameraConfigDialogProps) => {
-  const [config, setConfig] = useState({
-    name: stream.name,
-    url: stream.url,
-    robotId: stream.robotId
-  });
-  const { toast } = useToast();
+export const CameraConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData }: CameraConfigDialogProps) => {
+  const [name, setName] = useState("");
+  const [streamUrl, setStreamUrl] = useState("");
+  const [associatedRobot, setAssociatedRobot] = useState("");
+  const { settings } = useSettings();
 
-  const handleSave = () => {
-    // Save to localStorage
-    const savedStreams = JSON.parse(localStorage.getItem('cameraStreams') || '[]');
-    const updatedStreams = savedStreams.map((s: any) => 
-      s.id === stream.id ? { ...s, ...config } : s
-    );
-    localStorage.setItem('cameraStreams', JSON.stringify(updatedStreams));
-    
-    onSave(stream.id, config);
-    onOpenChange(false);
-    
-    toast({
-      title: "Camera Configuration Saved",
-      description: `Settings for ${config.name} have been updated`,
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      setStreamUrl(initialData.streamUrl);
+      setAssociatedRobot(initialData.associatedRobot);
+    } else {
+      setName("");
+      setStreamUrl("");
+      setAssociatedRobot("");
+    }
+  }, [initialData, isOpen]);
+
+  const handleSubmit = () => {
+    if (!name || !streamUrl || !associatedRobot) return;
+
+    const robot = settings.robots.find(r => r.id === associatedRobot);
+    const location = robot ? robot.location : "Unknown Location";
+
+    onSubmit({
+      name,
+      streamUrl,
+      associatedRobot,
+      status: 'active',
+      location
     });
+
+    // Reset form
+    setName("");
+    setStreamUrl("");
+    setAssociatedRobot("");
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Configure {stream.name}</DialogTitle>
+          <DialogTitle>
+            {initialData ? "Edit Camera Stream" : "Add Camera Stream"}
+          </DialogTitle>
           <DialogDescription>
-            Adjust camera settings and streaming options
+            Configure camera stream settings. Only the essential fields are required.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name">Stream Name</Label>
+            <Label htmlFor="stream-name">Stream Name</Label>
             <Input
-              id="name"
-              value={config.name}
-              onChange={(e) => setConfig({...config, name: e.target.value})}
+              id="stream-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Main Entrance Camera"
               className="mt-1"
-              placeholder="Enter stream name"
             />
           </div>
 
           <div>
-            <Label htmlFor="url">Stream URL</Label>
+            <Label htmlFor="stream-url">Stream Link</Label>
             <Input
-              id="url"
-              value={config.url}
-              onChange={(e) => setConfig({...config, url: e.target.value})}
+              id="stream-url"
+              value={streamUrl}
+              onChange={(e) => setStreamUrl(e.target.value)}
+              placeholder="https://your-camera-stream-url.com"
               className="mt-1"
-              placeholder="http://192.168.1.100:8080/stream"
             />
           </div>
 
           <div>
-            <Label htmlFor="robotId">Associated Robot</Label>
-            <Select value={config.robotId} onValueChange={(value) => setConfig({...config, robotId: value})}>
+            <Label htmlFor="associated-robot">Associated Robot</Label>
+            <Select value={associatedRobot} onValueChange={setAssociatedRobot}>
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select robot" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="robot-001">Patrol Bot Alpha</SelectItem>
-                <SelectItem value="robot-002">Guardian Beta</SelectItem>
-                <SelectItem value="robot-003">Sentinel Gamma</SelectItem>
+                {settings.robots.map((robot) => (
+                  <SelectItem key={robot.id} value={robot.id}>
+                    {robot.name} - {robot.location}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-
-          <Button onClick={handleSave} className="w-full bg-primary hover:bg-primary/90">
-            Save Configuration
-          </Button>
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={!name || !streamUrl || !associatedRobot}
+            className="bg-primary hover:bg-primary/90"
+          >
+            {initialData ? "Update Stream" : "Add Stream"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -11,38 +11,57 @@ import { RobotManagement } from "@/components/RobotManagement";
 import { CameraStreaming } from "@/components/CameraStreaming";
 import { TerminalComponent } from "@/components/TerminalComponent";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useSettings } from "@/hooks/useSettings";
+import { useState } from "react";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { settings, saveSettings } = useSettings();
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    primaryContact: "",
-    secondaryContact: "",
-    emailContact: "",
-    companyName: "",
-    facilityId: "",
-    pushNotifications: true,
-    emailAlerts: true,
-    smsAlerts: false,
-    alertSound: "siren"
-  });
-
-  // Load saved settings on component mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('firevolxSettings');
-    if (savedSettings) {
-      setFormData({ ...formData, ...JSON.parse(savedSettings) });
-    }
-  }, []);
 
   const handleSaveSettings = () => {
-    // Save to localStorage
-    localStorage.setItem('firevolxSettings', JSON.stringify(formData));
+    const updatedSettings = {
+      emergencyContacts: {
+        primaryContact: settings.emergencyContacts.primaryContact,
+        secondaryContact: settings.emergencyContacts.secondaryContact,
+        emailContact: settings.emergencyContacts.emailContact
+      },
+      alertSettings: settings.alertSettings,
+      account: settings.account
+    };
+
+    saveSettings(updatedSettings);
     
     toast({
       title: "Settings Saved",
-      description: "Your settings have been successfully updated",
+      description: "Your settings have been successfully updated and applied to live feeds",
+    });
+  };
+
+  const updateEmergencyContact = (field: string, value: string) => {
+    saveSettings({
+      emergencyContacts: {
+        ...settings.emergencyContacts,
+        [field]: value
+      }
+    });
+  };
+
+  const updateAlertSetting = (field: string, value: boolean | string) => {
+    saveSettings({
+      alertSettings: {
+        ...settings.alertSettings,
+        [field]: value
+      }
+    });
+  };
+
+  const updateAccountSetting = (field: string, value: string) => {
+    saveSettings({
+      account: {
+        ...settings.account,
+        [field]: value
+      }
     });
   };
   return (
@@ -69,8 +88,8 @@ const Settings = () => {
                 <Input 
                   id="primary-contact" 
                   placeholder="+1 (555) 123-4567" 
-                  value={formData.primaryContact}
-                  onChange={(e) => setFormData({...formData, primaryContact: e.target.value})}
+                  value={settings.emergencyContacts.primaryContact}
+                  onChange={(e) => updateEmergencyContact('primaryContact', e.target.value)}
                   className="mt-1"
                 />
               </div>
@@ -79,8 +98,8 @@ const Settings = () => {
                 <Input 
                   id="secondary-contact" 
                   placeholder="+1 (555) 987-6543" 
-                  value={formData.secondaryContact}
-                  onChange={(e) => setFormData({...formData, secondaryContact: e.target.value})}
+                  value={settings.emergencyContacts.secondaryContact}
+                  onChange={(e) => updateEmergencyContact('secondaryContact', e.target.value)}
                   className="mt-1"
                 />
               </div>
@@ -90,8 +109,8 @@ const Settings = () => {
                   id="email-contact" 
                   type="email"
                   placeholder="emergency@company.com" 
-                  value={formData.emailContact}
-                  onChange={(e) => setFormData({...formData, emailContact: e.target.value})}
+                  value={settings.emergencyContacts.emailContact}
+                  onChange={(e) => updateEmergencyContact('emailContact', e.target.value)}
                   className="mt-1"
                 />
               </div>
@@ -114,8 +133,8 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">Receive alerts on your device</p>
                 </div>
                 <Switch 
-                  checked={formData.pushNotifications} 
-                  onCheckedChange={(checked) => setFormData({...formData, pushNotifications: checked})}
+                  checked={settings.alertSettings.pushNotifications} 
+                  onCheckedChange={(checked) => updateAlertSetting('pushNotifications', checked)}
                 />
               </div>
               
@@ -125,8 +144,8 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">Send alerts via email</p>
                 </div>
                 <Switch 
-                  checked={formData.emailAlerts} 
-                  onCheckedChange={(checked) => setFormData({...formData, emailAlerts: checked})}
+                  checked={settings.alertSettings.emailAlerts} 
+                  onCheckedChange={(checked) => updateAlertSetting('emailAlerts', checked)}
                 />
               </div>
 
@@ -136,16 +155,16 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">Send critical alerts via SMS</p>
                 </div>
                 <Switch 
-                  checked={formData.smsAlerts} 
-                  onCheckedChange={(checked) => setFormData({...formData, smsAlerts: checked})}
+                  checked={settings.alertSettings.smsAlerts} 
+                  onCheckedChange={(checked) => updateAlertSetting('smsAlerts', checked)}
                 />
               </div>
 
               <div>
                 <Label className="text-foreground">Alert Sound</Label>
                 <Select 
-                  value={formData.alertSound} 
-                  onValueChange={(value) => setFormData({...formData, alertSound: value})}
+                  value={settings.alertSettings.alertSound} 
+                  onValueChange={(value) => updateAlertSetting('alertSound', value)}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -205,8 +224,8 @@ const Settings = () => {
                 <Input 
                   id="company-name" 
                   placeholder="Acme Industries" 
-                  value={formData.companyName}
-                  onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                  value={settings.account.companyName}
+                  onChange={(e) => updateAccountSetting('companyName', e.target.value)}
                   className="mt-1"
                 />
               </div>
@@ -216,8 +235,8 @@ const Settings = () => {
                 <Input 
                   id="facility-id" 
                   placeholder="FAC-001" 
-                  value={formData.facilityId}
-                  onChange={(e) => setFormData({...formData, facilityId: e.target.value})}
+                  value={settings.account.facilityId}
+                  onChange={(e) => updateAccountSetting('facilityId', e.target.value)}
                   className="mt-1"
                 />
               </div>

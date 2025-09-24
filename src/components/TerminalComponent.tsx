@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Terminal, Power, Wifi } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/hooks/useSettings";
 
 interface TerminalComponentProps {
   isOpen: boolean;
@@ -18,16 +20,21 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
   const [command, setCommand] = useState("");
   const [output, setOutput] = useState<string[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<"disconnected" | "connecting" | "connected">("disconnected");
-  const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { settings } = useSettings();
 
-  // Available robots from localStorage or default
-  const robots = JSON.parse(localStorage.getItem('robots') || '[]');
+  // Available robots from settings
+  const robots = settings.robots;
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    // Auto scroll to bottom when output changes
+    const timer = setTimeout(() => {
+      const terminalElement = document.querySelector('.terminal-output');
+      if (terminalElement) {
+        terminalElement.scrollTop = terminalElement.scrollHeight;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [output]);
 
   const connectToRobot = async () => {
@@ -44,7 +51,7 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
     setOutput(prev => [...prev, `Connecting to ${selectedRobot}...`]);
 
     try {
-      // Simulate SSH connection - In real implementation, this would use WebRTC or WebSocket
+      // Simulate SSH connection - In real implementation, this would use SSH over WebSocket
       const robot = robots.find((r: any) => r.id === selectedRobot);
       if (robot) {
         // Simulated connection delay
@@ -57,7 +64,7 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
           `Connected to ${robot.name} (${robot.ipAddress || '192.168.1.100'})`,
           `Ubuntu 22.04.3 LTS`,
           `Welcome to ROS 2 Humble`,
-          `firevolx@${robot.name}:~$ `
+          `firevolx@${robot.name.toLowerCase().replace(/\s+/g, '-')}:~$ `
         ]);
 
         toast({
@@ -202,8 +209,8 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col">
-          <ScrollArea className="flex-1 h-full border rounded p-4 bg-black text-green-400 font-mono text-sm">
-            <div ref={scrollRef} className="space-y-1">
+          <ScrollArea className="flex-1 h-full border rounded p-4 bg-black text-green-400 font-mono text-sm terminal-output">
+            <div className="space-y-1">
               {output.length === 0 && (
                 <div className="text-muted-foreground">
                   Select a robot and click Connect to start terminal session...
