@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Terminal, Power, Wifi } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/hooks/useSettings";
+import { telnetService, TelnetMessage } from "@/services/telnetService";
 
 interface TerminalComponentProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
   const [command, setCommand] = useState("");
   const [output, setOutput] = useState<string[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<"disconnected" | "connecting" | "connected">("disconnected");
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const { toast } = useToast();
   const { settings } = useSettings();
 
@@ -51,14 +53,25 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
     setOutput(prev => [...prev, `Connecting to ${selectedRobot}...`]);
 
     try {
-      // Simulate SSH connection - In real implementation, this would use SSH over WebSocket
       const robot = robots.find((r: any) => r.id === selectedRobot);
       if (robot) {
-        // Simulated connection delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
+        // Real telnet connection
+        const connId = await telnetService.connect({
+          host: robot.ipAddress || '192.168.1.100',
+          port: 22, // SSH port
+          username: 'firevolx',
+          password: robot.wifiPassword
+        });
+
+        setConnectionId(connId);
         setConnectionStatus("connected");
         setConnected(true);
+
+        // Set up message handler for real-time updates
+        telnetService.onMessage(connId, (message: TelnetMessage) => {
+          setOutput(prev => [...prev, message.data]);
+        });
+
         setOutput(prev => [
           ...prev,
           `Connected to ${robot.name} (${robot.ipAddress || '192.168.1.100'})`,
@@ -84,6 +97,11 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
   };
 
   const disconnectFromRobot = () => {
+    if (connectionId) {
+      telnetService.disconnect(connectionId);
+      telnetService.removeMessageHandler(connectionId);
+      setConnectionId(null);
+    }
     setConnected(false);
     setConnectionStatus("disconnected");
     setOutput(prev => [...prev, "Connection closed."]);
@@ -94,57 +112,17 @@ export const TerminalComponent = ({ isOpen, onOpenChange }: TerminalComponentPro
   };
 
   const executeCommand = async () => {
-    if (!command.trim() || !connected) return;
+    if (!command.trim() || !connected || !connectionId) return;
 
     const currentCommand = command;
     setCommand("");
-    setOutput(prev => [...prev, `firevolx@robot:~$ ${currentCommand}`]);
 
-    // Simulate command execution
-    setTimeout(() => {
-      let response = "";
-      
-      switch (currentCommand.toLowerCase()) {
-        case "ros2 node list":
-          response = "/fire_detection_node\n/camera_publisher\n/alert_system\n/patrol_controller";
-          break;
-        case "ros2 topic list":
-          response = "/fire_alert\n/camera_stream\n/robot_status\n/emergency_stop\n/patrol_waypoints";
-          break;
-        case "ros2 topic echo /fire_alert":
-          response = "data: Fire detected in sector A3\ntimestamp: 1703764800\nseverity: HIGH";
-          break;
-        case "ros2 service list":
-          response = "/emergency_stop\n/set_patrol_route\n/configure_sensors\n/get_robot_status";
-          break;
-        case "systemctl status ros2-firevolx":
-          response = "● ros2-firevolx.service - Firevolx Detection System\n   Loaded: loaded\n   Active: active (running)";
-          break;
-        case "ls":
-          response = "firevolx_ws  logs  config  scripts";
-          break;
-        case "pwd":
-          response = "/home/firevolx";
-          break;
-        case "whoami":
-          response = "firevolx";
-          break;
-        case "date":
-          response = new Date().toString();
-          break;
-        case "help":
-          response = "Available ROS 2 commands:\n- ros2 node list\n- ros2 topic list\n- ros2 topic echo /topic_name\n- ros2 service list\n- systemctl status ros2-firevolx";
-          break;
-        default:
-          if (currentCommand.startsWith("ros2")) {
-            response = "Command executed. Check robot logs for details.";
-          } else {
-            response = `bash: ${currentCommand}: command not found`;
-          }
-      }
-      
-      setOutput(prev => [...prev, response]);
-    }, 500);
+    try {
+      // Send real command to Raspberry Pi
+      await telnetService.sendCommand(connectionId, currentCommand);
+    } catch (error) {
+      setOutput(prev => [...prev, `Error: ${error}`]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

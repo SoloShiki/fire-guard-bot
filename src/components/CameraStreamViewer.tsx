@@ -4,13 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Maximize2, Minimize2, Volume2, VolumeX, RotateCcw } from "lucide-react";
 
-interface CameraStream {
-  id: string;
-  name: string;
-  url: string;
-  status: "active" | "offline";
-  robotId: string;
-}
+import { CameraStream } from "@/hooks/useSettings";
 
 interface CameraStreamViewerProps {
   stream: CameraStream;
@@ -42,7 +36,7 @@ export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStrea
         <div className="aspect-video bg-black flex items-center justify-center relative overflow-hidden">
           {/* Actual camera stream */}
           <iframe
-            src={stream.url}
+            src={stream.streamUrl}
             className="w-full h-full border-0"
             title={`${stream.name} Live Feed`}
             allow="camera; microphone"
@@ -52,14 +46,14 @@ export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStrea
           />
           {/* Fallback content if iframe fails */}
           <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center" 
-               style={{ zIndex: stream.url.includes('demo') ? 1 : -1 }}>
+               style={{ zIndex: stream.streamUrl.includes('demo') ? 1 : -1 }}>
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
                 <div className="w-8 h-8 bg-primary rounded-full animate-pulse"></div>
               </div>
               <p className="text-lg font-semibold text-foreground">Live Feed Active</p>
               <p className="text-sm text-muted-foreground">Camera: {stream.name}</p>
-              <p className="text-xs text-muted-foreground">URL: {stream.url}</p>
+              <p className="text-xs text-muted-foreground">URL: {stream.streamUrl}</p>
             </div>
           </div>
           
@@ -71,7 +65,7 @@ export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStrea
           </div>
           
           <div className="absolute bottom-2 left-2 text-white bg-black/70 px-2 py-1 rounded text-xs">
-            Robot: {stream.robotId}
+            Robot: {stream.associatedRobot}
           </div>
         </div>
       )}

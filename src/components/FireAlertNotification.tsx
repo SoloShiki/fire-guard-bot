@@ -91,10 +91,10 @@ export const FireAlertNotification = ({ isVisible, location, severity, onDismiss
             variant="destructive"
             onClick={() => {
               setIsAcknowledged(true);
-              // Trigger emergency protocol
+              // Trigger emergency protocol for specific location only
               toast({
                 title: "Emergency Protocol Activated",
-                description: "Contacting emergency services...",
+                description: `Contacting emergency services for ${location}...`,
               });
             }}
           >

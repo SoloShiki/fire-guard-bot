@@ -20,21 +20,20 @@ const Settings = () => {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
 
   const handleSaveSettings = () => {
+    // Save all current form values
     const updatedSettings = {
-      emergencyContacts: {
-        primaryContact: settings.emergencyContacts.primaryContact,
-        secondaryContact: settings.emergencyContacts.secondaryContact,
-        emailContact: settings.emergencyContacts.emailContact
-      },
+      emergencyContacts: settings.emergencyContacts,
       alertSettings: settings.alertSettings,
-      account: settings.account
+      account: settings.account,
+      robots: settings.robots,
+      cameraStreams: settings.cameraStreams
     };
 
     saveSettings(updatedSettings);
     
     toast({
-      title: "Settings Saved",
-      description: "Your settings have been successfully updated and applied to live feeds",
+      title: "All Settings Saved",
+      description: "Your configuration has been applied to live feeds and terminal connections",
     });
   };
 
