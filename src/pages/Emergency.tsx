@@ -1,19 +1,28 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Flame, AlertTriangle, Phone, VolumeX, ArrowLeft, MapPin } from "lucide-react";
+import { Flame, AlertTriangle, Phone, ArrowLeft, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSettings } from "@/hooks/useSettings";
 import factoryFeed4 from "@/assets/factory-feed-4.jpg";
 
 const Emergency = () => {
   const [alertActive, setAlertActive] = useState(true);
-  const [silenced, setSilenced] = useState(false);
   const navigate = useNavigate();
+  const { settings } = useSettings();
+  
+  // Get first robot location as emergency location, or fallback
+  const emergencyLocation = settings.robots.length > 0 
+    ? settings.robots[0].location 
+    : "Unknown Location";
+  const emergencyRobot = settings.robots.length > 0 
+    ? settings.robots[0] 
+    : { id: "RBT-001", name: "Emergency Robot" };
 
   // Simulate alert sound (in real app this would trigger actual sound)
   useEffect(() => {
     const interval = setInterval(() => {
-      if (alertActive && !silenced) {
+      if (alertActive) {
         // Simulate alert flashing
         document.body.style.backgroundColor = 'hsl(0 100% 20%)';
         setTimeout(() => {
@@ -26,15 +35,12 @@ const Emergency = () => {
       clearInterval(interval);
       document.body.style.backgroundColor = '';
     };
-  }, [alertActive, silenced]);
-
-  const handleSilence = () => {
-    setSilenced(true);
-  };
+  }, [alertActive]);
 
   const handleCallEmergency = () => {
     // In real app, this would initiate emergency call
-    alert("Calling emergency services: +1 (555) 911-0000");
+    const primaryContact = settings.emergencyContacts.primaryContact || "+1 (555) 911-0000";
+    alert(`Calling emergency services: ${primaryContact}`);
   };
 
   const handleResolve = () => {
@@ -61,7 +67,7 @@ const Emergency = () => {
       </div>
 
       {/* Main Alert */}
-      <div className={`text-center mb-8 ${alertActive && !silenced ? 'animate-pulse' : ''}`}>
+      <div className={`text-center mb-8 ${alertActive ? 'animate-pulse' : ''}`}>
         <div className="flex justify-center mb-4">
           <Flame size={80} className="text-emergency-foreground" />
         </div>
@@ -69,7 +75,7 @@ const Emergency = () => {
         <h3 className="text-2xl font-semibold mb-4">EVACUATE IMMEDIATELY</h3>
         <div className="flex items-center justify-center space-x-2 text-lg">
           <MapPin size={20} />
-          <span>Processing Plant C - Section 4</span>
+          <span>{emergencyLocation}</span>
         </div>
       </div>
 
@@ -77,7 +83,7 @@ const Emergency = () => {
       <Card className="mb-6 bg-black/50 border-emergency-foreground/30">
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-emergency-foreground">Live Feed - RBT-004</h3>
+            <h3 className="text-lg font-semibold text-emergency-foreground">Live Feed - {emergencyRobot.id}</h3>
             <div className="bg-emergency px-3 py-1 rounded text-sm font-bold animate-pulse">
               FIRE DETECTED
             </div>
@@ -106,26 +112,14 @@ const Emergency = () => {
           CALL EMERGENCY SERVICES
         </Button>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Button 
-            onClick={handleSilence}
-            variant="outline"
-            className="h-12 border-emergency-foreground text-emergency-foreground hover:bg-emergency-foreground hover:text-emergency"
-            disabled={silenced}
-          >
-            <VolumeX className="mr-2" size={20} />
-            {silenced ? "SILENCED" : "SILENCE ALARM"}
-          </Button>
-
-          <Button 
-            onClick={handleResolve}
-            variant="outline"
-            className="h-12 border-emergency-foreground text-emergency-foreground hover:bg-emergency-foreground hover:text-emergency"
-          >
-            <AlertTriangle className="mr-2" size={20} />
-            MARK RESOLVED
-          </Button>
-        </div>
+        <Button 
+          onClick={handleResolve}
+          variant="outline"
+          className="w-full h-12 border-emergency-foreground text-emergency-foreground hover:bg-emergency-foreground hover:text-emergency"
+        >
+          <AlertTriangle className="mr-2" size={20} />
+          MARK RESOLVED
+        </Button>
       </div>
 
       {/* Emergency Info */}
@@ -143,7 +137,7 @@ const Emergency = () => {
             </div>
             <div className="flex justify-between">
               <span>Robot ID:</span>
-              <span className="font-mono">RBT-004</span>
+              <span className="font-mono">{emergencyRobot.id}</span>
             </div>
             <div className="flex justify-between">
               <span>Severity:</span>
@@ -154,6 +148,10 @@ const Emergency = () => {
               <span className={alertActive ? "text-emergency-foreground font-bold" : "text-success"}>
                 {alertActive ? "ACTIVE" : "RESOLVED"}
               </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Location:</span>
+              <span className="font-semibold">{emergencyLocation}</span>
             </div>
           </div>
         </div>

@@ -3,17 +3,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, X, Siren } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/hooks/useSettings";
 
 interface FireAlertProps {
   isVisible: boolean;
-  location: string;
+  robotId?: string;
   severity: "HIGH" | "MEDIUM" | "LOW";
   onDismiss: () => void;
 }
 
-export const FireAlertNotification = ({ isVisible, location, severity, onDismiss }: FireAlertProps) => {
+export const FireAlertNotification = ({ isVisible, robotId, severity, onDismiss }: FireAlertProps) => {
   const [isAcknowledged, setIsAcknowledged] = useState(false);
   const { toast } = useToast();
+  const { settings } = useSettings();
+  
+  // Find robot and location based on robotId
+  const robot = robotId ? settings.robots.find(r => r.id === robotId) : settings.robots[0];
+  const location = robot ? robot.location : "Unknown Location";
 
   useEffect(() => {
     if (isVisible && !isAcknowledged) {
@@ -92,10 +98,12 @@ export const FireAlertNotification = ({ isVisible, location, severity, onDismiss
             onClick={() => {
               setIsAcknowledged(true);
               // Trigger emergency protocol for specific location only
-              toast({
-                title: "Emergency Protocol Activated",
-                description: `Contacting emergency services for ${location}...`,
-              });
+              if (robot) {
+                toast({
+                  title: "Emergency Protocol Activated",
+                  description: `Contacting emergency services for ${robot.location}...`,
+                });
+              }
             }}
           >
             Emergency Protocol

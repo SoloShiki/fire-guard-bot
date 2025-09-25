@@ -9,11 +9,11 @@ const Home = () => {
   const { settings, updateCameraStream } = useSettings();
   const [fireAlert, setFireAlert] = useState<{
     isVisible: boolean;
-    location: string;
+    robotId: string;
     severity: "HIGH" | "MEDIUM" | "LOW";
   }>({
     isVisible: false,
-    location: "",
+    robotId: "",
     severity: "LOW"
   });
 
@@ -23,11 +23,11 @@ const Home = () => {
       // This would be replaced with actual ROS2 integration
       const alertProbability = Math.random();
       if (alertProbability < 0.001) { // Very low probability for demo
-        const locations = settings.cameraStreams.map(s => s.location);
-        const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+        const robotIds = settings.robots.map(r => r.id);
+        const randomRobotId = robotIds[Math.floor(Math.random() * robotIds.length)];
         setFireAlert({
           isVisible: true,
-          location: randomLocation,
+          robotId: randomRobotId,
           severity: alertProbability < 0.0003 ? "HIGH" : alertProbability < 0.0007 ? "MEDIUM" : "LOW"
         });
       }
@@ -99,7 +99,7 @@ const Home = () => {
       {/* Fire Alert Notification */}
       <FireAlertNotification
         isVisible={fireAlert.isVisible}
-        location={fireAlert.location}
+        robotId={fireAlert.robotId}
         severity={fireAlert.severity}
         onDismiss={() => setFireAlert(prev => ({ ...prev, isVisible: false }))}
       />
