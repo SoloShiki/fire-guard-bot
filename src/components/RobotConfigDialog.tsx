@@ -20,6 +20,7 @@ interface RobotConfigDialogProps {
     location: string;
     wifiNetwork: string;
     wifiPassword: string;
+    ipAddress?: string;
   } | null;
 }
 
@@ -29,6 +30,7 @@ export const RobotConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData 
   const [location, setLocation] = useState("");
   const [wifiNetwork, setWifiNetwork] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
+  const [ipAddress, setIpAddress] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -36,12 +38,14 @@ export const RobotConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData 
       setLocation(initialData.location);
       setWifiNetwork(initialData.wifiNetwork);
       setWifiPassword(initialData.wifiPassword);
+      setIpAddress(initialData.ipAddress || "");
     } else {
       setRobotId("");
       setName("");
       setLocation("");
       setWifiNetwork("");
       setWifiPassword("");
+      setIpAddress("");
     }
   }, [initialData, isOpen]);
 
@@ -54,7 +58,7 @@ export const RobotConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData 
       wifiNetwork,
       wifiPassword,
       status: 'online',
-      ipAddress: initialData ? undefined : `192.168.1.${Math.floor(Math.random() * 100) + 100}`
+      ipAddress: ipAddress || `192.168.1.${Math.floor(Math.random() * 100) + 100}`
     });
 
     // Reset form
@@ -63,6 +67,7 @@ export const RobotConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData 
     setLocation("");
     setWifiNetwork("");
     setWifiPassword("");
+    setIpAddress("");
   };
 
   return (
@@ -132,6 +137,17 @@ export const RobotConfigDialog = ({ isOpen, onOpenChange, onSubmit, initialData 
               value={wifiPassword}
               onChange={(e) => setWifiPassword(e.target.value)}
               placeholder="••••••••"
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="ip-address">IP Address (Manual Override)</Label>
+            <Input
+              id="ip-address"
+              value={ipAddress}
+              onChange={(e) => setIpAddress(e.target.value)}
+              placeholder="192.168.1.100"
               className="mt-1"
             />
           </div>

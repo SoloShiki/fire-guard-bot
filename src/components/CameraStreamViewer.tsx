@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Maximize2, Minimize2, Volume2, VolumeX, RotateCcw } from "lucide-react";
+import Hls from "hls.js";
 
 import { CameraStream } from "@/hooks/useSettings";
 
@@ -16,10 +17,50 @@ export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStrea
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+
+  useEffect(() => {
+    if (videoRef.current && stream.streamUrl) {
+      const video = videoRef.current;
+      
+      // Check if it's an HLS stream
+      if (stream.streamUrl.includes('.m3u8') || stream.streamUrl.includes('hls')) {
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hlsRef.current = hls;
+          hls.loadSource(stream.streamUrl);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            setIsLoading(false);
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = stream.streamUrl;
+          video.addEventListener('loadedmetadata', () => {
+            setIsLoading(false);
+          });
+        }
+      } else {
+        // Regular video source
+        video.src = stream.streamUrl;
+        video.addEventListener('loadedmetadata', () => {
+          setIsLoading(false);
+        });
+      }
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
+    };
+  }, [stream.streamUrl]);
 
   const handleReload = () => {
     setIsLoading(true);
-    // Simulate loading time
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+    }
     setTimeout(() => setIsLoading(false), 1000);
   };
 
@@ -34,17 +75,32 @@ export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStrea
         </div>
       ) : (
         <div className="aspect-video bg-black flex items-center justify-center relative overflow-hidden">
-          {/* Actual camera stream */}
-          <iframe
-            src={stream.streamUrl}
-            className="w-full h-full border-0"
-            title={`${stream.name} Live Feed`}
-            allow="camera; microphone"
+          {/* HLS/Video Stream */}
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            controls={false}
+            muted={isMuted}
+            autoPlay
+            playsInline
             onError={() => {
-              console.log('Stream failed to load, showing fallback');
+              setIsLoading(false);
+              console.log('Video stream failed to load');
             }}
           />
-          {/* Fallback content if iframe fails */}
+          
+          {/* Fallback iframe for non-video streams */}
+          {!stream.streamUrl.includes('.m3u8') && !stream.streamUrl.includes('hls') && (
+            <iframe
+              src={stream.streamUrl}
+              className="absolute inset-0 w-full h-full border-0"
+              title={`${stream.name} Live Feed`}
+              allow="camera; microphone"
+              style={{ zIndex: stream.streamUrl.includes('demo') ? 2 : 1 }}
+            />
+          )}
+          
+          {/* Fallback content */}
           <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center" 
                style={{ zIndex: stream.streamUrl.includes('demo') ? 1 : -1 }}>
             <div className="text-center space-y-2">
