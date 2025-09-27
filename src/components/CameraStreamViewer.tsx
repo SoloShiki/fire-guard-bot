@@ -13,6 +13,38 @@ interface CameraStreamViewerProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Helper function to convert various video URLs to embed format
+const getEmbedUrl = (url: string): string => {
+  try {
+    // YouTube
+    if (url.includes('youtube.com/watch')) {
+      const videoId = new URL(url).searchParams.get('v');
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
+    }
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1].split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
+    }
+    
+    // Vimeo
+    if (url.includes('vimeo.com/')) {
+      const videoId = url.split('vimeo.com/')[1].split('?')[0];
+      return `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1`;
+    }
+    
+    // Twitch
+    if (url.includes('twitch.tv/')) {
+      const channel = url.split('twitch.tv/')[1].split('?')[0];
+      return `https://player.twitch.tv/?channel=${channel}&parent=${window.location.hostname}&autoplay=true&muted=true`;
+    }
+    
+    return url;
+  } catch (error) {
+    console.error('Error processing embed URL:', error);
+    return url;
+  }
+};
+
 export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStreamViewerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -89,15 +121,42 @@ export const CameraStreamViewer = ({ stream, isOpen, onOpenChange }: CameraStrea
             }}
           />
           
-          {/* Fallback iframe for non-video streams */}
+          {/* Enhanced multimedia support for external content */}
           {!stream.streamUrl.includes('.m3u8') && !stream.streamUrl.includes('hls') && (
             <iframe
               src={stream.streamUrl}
               className="absolute inset-0 w-full h-full border-0"
               title={`${stream.name} Live Feed`}
-              allow="camera; microphone"
-              style={{ zIndex: stream.streamUrl.includes('demo') ? 2 : 1 }}
+              allow="camera; microphone; autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+              loading="lazy"
+              style={{ 
+                zIndex: stream.streamUrl.includes('demo') ? 2 : 1,
+                backgroundColor: '#000'
+              }}
+              onError={(e) => {
+                console.log('Iframe failed to load, attempting direct embed');
+                e.currentTarget.style.display = 'none';
+              }}
             />
+          )}
+          
+          {/* Direct media embed for supported formats */}
+          {(stream.streamUrl.includes('youtube.com') || 
+            stream.streamUrl.includes('youtu.be') ||
+            stream.streamUrl.includes('vimeo.com') ||
+            stream.streamUrl.includes('twitch.tv')) && (
+            <div className="absolute inset-0 w-full h-full bg-black">
+              <iframe
+                src={getEmbedUrl(stream.streamUrl)}
+                className="w-full h-full border-0"
+                title={`${stream.name} Stream`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           )}
           
           {/* Fallback content */}

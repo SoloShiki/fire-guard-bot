@@ -2,6 +2,7 @@ import { AlertButton } from "@/components/AlertButton";
 import { CameraFeed } from "@/components/CameraFeed";
 import { Layout } from "@/components/Layout";
 import { FireAlertNotification } from "@/components/FireAlertNotification";
+import { FireDetectionSystem } from "@/components/FireDetectionSystem";
 import { useSettings } from "@/hooks/useSettings";
 import { useState, useEffect } from "react";
 
@@ -17,25 +18,7 @@ const Home = () => {
     severity: "LOW"
   });
 
-  // Simulate fire detection from ROS2 system
-  useEffect(() => {
-    const checkForFireAlerts = () => {
-      // This would be replaced with actual ROS2 integration
-      const alertProbability = Math.random();
-      if (alertProbability < 0.001) { // Very low probability for demo
-        const robotIds = settings.robots.map(r => r.id);
-        const randomRobotId = robotIds[Math.floor(Math.random() * robotIds.length)];
-        setFireAlert({
-          isVisible: true,
-          robotId: randomRobotId,
-          severity: alertProbability < 0.0003 ? "HIGH" : alertProbability < 0.0007 ? "MEDIUM" : "LOW"
-        });
-      }
-    };
-
-    const interval = setInterval(checkForFireAlerts, 5000);
-    return () => clearInterval(interval);
-  }, [settings.cameraStreams]);
+  // Real fire detection system integration - handled by FireDetectionSystem component
 
   const activeRobots = settings.robots.filter(r => r.status === 'online').length;
   const alertRobots = settings.robots.filter(r => r.status === 'alert').length;
@@ -95,6 +78,18 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Fire Detection System - Background Service */}
+      <FireDetectionSystem
+        onFireDetected={(event) => {
+          console.log('🔥 Fire detection event received in Home:', event);
+          setFireAlert({
+            isVisible: true,
+            robotId: event.robotId,
+            severity: event.severity.toUpperCase() as "HIGH" | "MEDIUM" | "LOW"
+          });
+        }}
+      />
 
       {/* Fire Alert Notification */}
       <FireAlertNotification

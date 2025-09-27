@@ -116,21 +116,46 @@ export const useSettings = () => {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('firevolxSettings');
-    if (savedSettings) {
+    const loadSettings = async () => {
       try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed }));
+        const savedSettings = localStorage.getItem('firevolxSettings');
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          // Validate and merge with defaults
+          const mergedSettings = {
+            ...defaultSettings,
+            ...parsed,
+            // Ensure arrays exist
+            robots: Array.isArray(parsed.robots) ? parsed.robots : defaultSettings.robots,
+            cameraStreams: Array.isArray(parsed.cameraStreams) ? parsed.cameraStreams : defaultSettings.cameraStreams
+          };
+          setSettings(mergedSettings);
+          console.log('✅ Settings loaded successfully');
+        }
       } catch (error) {
-        console.error('Error parsing saved settings:', error);
+        console.error('❌ Error loading settings:', error);
+        // Fallback to default settings
+        setSettings(defaultSettings);
       }
-    }
+    };
+
+    loadSettings();
   }, []);
 
   const saveSettings = (newSettings: Partial<Settings>) => {
-    const updatedSettings = { ...settings, ...newSettings };
-    setSettings(updatedSettings);
-    localStorage.setItem('firevolxSettings', JSON.stringify(updatedSettings));
+    try {
+      const updatedSettings = { ...settings, ...newSettings };
+      setSettings(updatedSettings);
+      
+      // Persist to localStorage with error handling
+      localStorage.setItem('firevolxSettings', JSON.stringify(updatedSettings));
+      console.log('💾 Settings saved successfully');
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error saving settings:', error);
+      return false;
+    }
   };
 
   const updateRobot = (robotId: string, updates: Partial<Robot>) => {
